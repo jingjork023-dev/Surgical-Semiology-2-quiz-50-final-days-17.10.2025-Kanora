@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz for Exam 17.09.2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .question-lang-km, .option-lang-km {
+            font-family: 'Noto Sans Khmer', sans-serif;
+        }
+        .quiz-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .option-btn {
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            line-height: 1.5;
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .correct {
+            background-color: #d1fae5 !important;
+            border-color: #10b981 !important;
+            color: #065f46;
+        }
+        .incorrect {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #991b1b;
+        }
+        .selected {
+            background-color: #e0f2fe;
+            border-color: #38bdf8;
+        }
+        .question-nav-btn {
+            transition: all 0.2s ease-in-out;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .question-nav-btn.active {
+            background-color: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+        .question-nav-btn.answered-correct {
+            background-color: #bfdbfe; /* Tailwind blue-200 */
+            border-color: #60a5fa; /* Tailwind blue-400 */
+            color: #1e40af; /* Tailwind blue-800 */
+        }
+        .question-nav-btn.answered-incorrect {
+            background-color: #fecaca; /* Tailwind red-200 */
+            border-color: #f87171; /* Tailwind red-400 */
+            color: #991b1b; /* Tailwind red-900 */
+        }
+        .question-nav-btn:hover:not(.active) {
+            background-color: #f3f4f6;
+        }
+        /* Styles for Edit Mode */
+        .edit-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            margin-top: 4px;
+        }
+        .edit-label {
+            font-weight: 500;
+            color: #374151;
+            margin-top: 12px;
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen py-8">
+
+    <div id="quiz-container" class="quiz-container w-full">
+        
+        <div class="text-center mb-8 relative">
+            <h1 class="text-3xl font-bold text-gray-800">Quiz for Exam 17.09.2025</h1>
+            <p id="quiz-subtitle" class="text-gray-500 mt-2">Subject: Surgical Semiology 2 (60 questions)</p>
+            <p class="text-gray-500">Lecturer: Kanora</p>
+            <div class="absolute top-0 left-0 flex gap-2">
+                <button id="practice-sheet-btn" class="bg-blue-100 text-blue-700 font-semibold py-2 px-4 rounded-lg hover:bg-blue-200 text-sm">Practice Sheet</button>
+                <button id="show-all-btn" class="bg-green-100 text-green-700 font-semibold py-2 px-4 rounded-lg hover:bg-green-200 text-sm">Show Answers</button>
+            </div>
+            <button id="edit-quiz-btn" class="absolute top-0 right-0 bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 text-sm">Edit Quiz</button>
+        </div>
+
+        <div class="text-center mb-6">
+            <div class="inline-flex rounded-md shadow-sm" role="group">
+                <button id="part1-btn" type="button" class="py-2 px-6 text-sm font-medium text-white bg-indigo-600 rounded-l-lg border border-gray-200 hover:bg-indigo-700 focus:z-10 focus:ring-2 focus:ring-indigo-500">
+                    Part 1
+                </button>
+                <button id="part2-btn" type="button" class="py-2 px-6 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200 hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-indigo-500">
+                    Part 2
+                </button>
+                 <button id="part3-btn" type="button" class="py-2 px-6 text-sm font-medium text-gray-900 bg-white rounded-r-md border border-gray-200 hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-indigo-500">
+                    Part 3
+                </button>
+            </div>
+        </div>
+
+
+        <div id="quiz-view">
+            <div class="flex justify-between items-center mb-4">
+                 <div id="main-score-text" class="text-lg font-bold text-indigo-600"></div>
+                 <button id="redo-part-btn" class="bg-orange-100 text-orange-700 font-semibold py-2 px-4 rounded-lg hover:bg-orange-200 text-sm">Redo Part</button>
+            </div>
+            <div id="question-navigation" class="flex flex-wrap justify-center gap-2 mb-6">
+                <!-- Question number buttons will be dynamically inserted here -->
+            </div>
+
+            <div id="question-area" class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="question-number" class="text-xl font-semibold text-gray-700"></h2>
+                   
+                </div>
+                <div id="question-text" class="text-lg text-gray-800 leading-relaxed"></div>
+            </div>
+
+            <div id="answer-area" class="grid grid-cols-1 md-grid-cols-2 gap-4">
+                <!-- Options will be dynamically inserted here -->
+            </div>
+
+            <div id="feedback-area" class="mt-6 text-center text-lg font-medium"></div>
+
+            <div class="mt-6 text-center">
+                <button id="redo-btn" class="hidden bg-yellow-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-yellow-600 transition-colors duration-300 shadow-lg">
+                    Redo Question
+                </button>
+            </div>
+
+            <div class="mt-4 flex justify-between items-center">
+                <button id="prev-btn" class="bg-gray-500 text-white font-bold py-3 px-8 rounded-lg hover:bg-gray-600 transition-colors duration-300 shadow-lg hidden">
+                    <span class="font-semibold">&larr; Previous</span>
+                </button>
+                <button id="next-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-lg hidden ml-auto">
+                    <span class="font-semibold">Next Question</span>
+                </button>
+            </div>
+
+            <div id="results-area" class="hidden text-center">
+                <div class="mb-4">
+                    <h2 class="text-4xl font-extrabold text-gray-800">Quiz Complete!</h2>
+                </div>
+                <p id="results-score" class="text-2xl text-gray-600 mb-6"></p>
+                <div id="summary" class="text-left mt-8 bg-gray-50 p-6 rounded-lg">
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold text-gray-700">Review Your Answers:</h3>
+                    </div>
+                </div>
+                <button id="restart-btn" class="mt-8 bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-lg">
+                    <span class="font-semibold">Play Again</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="practice-sheet-view" class="hidden">
+            <!-- Content generated by JS -->
+        </div>
+
+        <div id="all-questions-view" class="hidden">
+            <!-- Content for showing all answers -->
+        </div>
+
+        <div id="edit-view" class="hidden">
+            <h2 class="text-2xl font-bold text-center mb-6">Edit Quiz Questions</h2>
+            <div id="edit-question-navigation" class="flex flex-wrap justify-center gap-2 mb-6">
+                <!-- Edit mode question number buttons will be dynamically inserted here -->
+            </div>
+            <div id="edit-questions-container"></div>
+            <div class="flex justify-between items-start mt-8">
+                <button id="add-question-btn" class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700">Add Question</button>
+                <div>
+                    <button id="cancel-edit-btn" class="bg-gray-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-600 mr-4">Cancel</button>
+                    <button id="apply-preview-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700">Apply to Preview</button>
+                    <button id="generate-save-code-btn" class="bg-purple-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-purple-700 ml-4">Generate Save Code</button>
+                </div>
+            </div>
+            <div id="export-area" class="hidden mt-6 p-4 border-2 border-dashed border-purple-400 rounded-lg bg-purple-50">
+                <h3 class="text-lg font-semibold text-purple-800">How to Save Your Changes Permanently</h3>
+                <ol class="list-decimal list-inside text-gray-700 space-y-2 mt-2">
+                    <li>All the code for your updated quiz is in the text box below.</li>
+                    <li>Click anywhere in the box to automatically copy all the code.</li>
+                    <li>Paste the copied code in a new message and send it to me.</li>
+                    <li>I will then update the file for you with your permanent changes.</li>
+                </ol>
+                <textarea id="export-output" readonly class="w-full h-64 p-2 border rounded-md bg-gray-100 font-mono text-sm focus:ring-2 focus:ring-indigo-500 mt-4 cursor-pointer"></textarea>
+                <p id="copy-feedback" class="text-purple-700 font-medium text-sm mt-2 h-4"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizDataPart1 = [
+            {
+                "number": 1,
+                "type": "mcq",
+                "question": {
+                    "en": "You are a male doctor and you have to examine a young lady in a consultation room. You need an assistant to witness your procedure. Who do you think, is the best person who can assist you? (One correct answer)",
+                    "km": "អ្នកជាគ្រូពេទ្យប្រុស ហើយអ្នកត្រូវពិនិត្យស្ត្រីវ័យក្មេងម្នាក់នៅក្នុងបន្ទប់ពិគ្រោះយោបល់។ អ្នកត្រូវការជំនួយការម្នាក់ដើម្បីធ្វើជាសាក្សីក្នុងនីតិវិធីរបស់អ្នក។ តើអ្នកគិតថាអ្នកណាជាមនុស្សល្អបំផុតដែលអាចជួយអ្នកបាន? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Her friend", "B. Her boyfriend", "C. Not necessary to have anyone", "D. A female nurse"],
+                    "km": ["A. មិត្តភក្តិរបស់នាង", "B. មិត្តប្រុសរបស់នាង", "C. មិនចាំបាច់មាននរណាម្នាក់ឡើយ", "D. គិលានុបដ្ឋាយិកាស្រី"]
+                },
+                "answer": { "en": "D. A female nurse", "km": "D. គិលានុបដ្ឋាយិកាស្រី" }
+            },
+            {
+                "number": 2,
+                "type": "mcq",
+                "question": {
+                    "en": "What is the main part of clinical examination? (One correct answer)",
+                    "km": "តើអ្វីជាផ្នែកសំខាន់នៃការពិនិត្យគ្លីនិក? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Taking the history", "B. Physical exam", "C. Prescribe the appropriate diagnostic tests", "D. Check for correct patient identity"],
+                    "km": ["A. ការសាកសួរប្រវត្តិជំងឺ", "B. ការពិនិត្យរាងកាយ", "C. ការចេញវេជ្ជបញ្ជាការធ្វើតេស្តរោគវិនិច្ឆ័យសមស្រប", "D. ការពិនិត្យអត្តសញ្ញាណអ្នកជំងឺឱ្យបានត្រឹមត្រូវ"]
+                },
+                "answer": { "en": "A. Taking the history", "km": "A. ការសាកសួរប្រវត្តិជំងឺ" }
+            },
+            {
+                "number": 3,
+                "type": "mcq",
+                "question": {
+                    "en": "Which of the following statements you should consider to do when starting your consultation? (One correct answer)",
+                    "km": "តើសេចក្តីថ្លែងការណ៍មួយណាខាងក្រោមដែលអ្នកគួរពិចារណាធ្វើនៅពេលចាប់ផ្តើមការពិគ្រោះយោបល់របស់អ្នក? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Tell patient about your department and hospital", "B. Bring patient to the quiet room for privacy", "C. Introduce yourself to the patient", "D. Asking patient identity"],
+                    "km": ["A. ប្រាប់អ្នកជំងឺអំពីនាយកដ្ឋាន និងមន្ទីរពេទ្យរបស់អ្នក។", "B. នាំអ្នកជំងឺទៅបន្ទប់ស្ងាត់សម្រាប់ភាពឯកជន។", "C. ណែនាំខ្លួនអ្នកទៅអ្នកជំងឺ។", "D. សួរអត្តសញ្ញាណអ្នកជំងឺ។"]
+                },
+                "answer": { "en": "C. Introduce yourself to the patient", "km": "C. ណែនាំខ្លួនអ្នកទៅអ្នកជំងឺ។" }
+            },
+            {
+                "number": 4,
+                "type": "mcq",
+                "question": {
+                    "en": "Which of these statements do you think that is important before seeing your patient? (One correct answer)",
+                    "km": "តើសេចក្តីថ្លែងការណ៍មួយណាខាងក្រោមដែលអ្នកគិតថាសំខាន់មុនពេលជួបអ្នកជំងឺរបស់អ្នក? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Getting cellphone ready for record and take photo", "B. Set up the room and prepare yourself", "C. Dressing properly with badge", "D. Look into patient’s document before seeing him"],
+                    "km": ["A. រៀបចំទូរស័ព្ទដៃសម្រាប់ថត និងថតរូប។", "B. រៀបចំបន្ទប់ និងត្រៀមខ្លួនអ្នក។", "C. ស្លៀកពាក់ឱ្យបានត្រឹមត្រូវជាមួយផ្លាកឈ្មោះ។", "D. ពិនិត្យឯកសារអ្នកជំងឺមុនពេលជួបគាត់។"]
+                },
+                "answer": { "en": "B. Set up the room and prepare yourself", "km": "B. រៀបចំបន្ទប់ និងត្រៀមខ្លួនអ្នក។" }
+            },
+            {
+                "number": 5,
+                "type": "mcq",
+                "question": {
+                    "en": "Which one of those diagnostic tests considered as safe for the patients? (One correct answer)",
+                    "km": "តើការធ្វើតេស្តរោគវិនិច្ឆ័យមួយណាដែលត្រូវបានចាត់ទុកថាមានសុវត្ថិភាពសម្រាប់អ្នកជំងឺ? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Computed Tomography Scan", "B. Magnetic Resonance Imaging", "C. Ultrasonography", "D. Radiography"],
+                    "km": ["A. ការស្កេន Computed Tomography (CT Scan)", "B. ការស្កេន Magnetic Resonance Imaging (MRI)", "C. អ៊ុលត្រាសោន (Ultrasonography)", "D. រ៉ាដ្យូក្រាហ្វិច (Radiography)"]
+                },
+                "answer": { "en": "C. Ultrasonography", "km": "C. អ៊ុលត្រាសោន (Ultrasonography)" }
+            },
+            {
+                "number": 6,
+                "type": "mcq",
+                "question": {
+                    "en": "In wound mechanism, which force is the most vulnerable to the skin? (One correct answer)",
+                    "km": "ក្នុងយន្តការរបួស តើកម្លាំងមួយណាដែលងាយរងគ្រោះបំផុតចំពោះស្បែក? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Shearing force", "B. Compression force", "C. Tensile force", "D. Burning"],
+                    "km": ["A. កម្លាំងកាត់ (Shearing force)", "B. កម្លាំងសង្កត់ (Compression force)", "C. កម្លាំងទាញ (Tensile force)", "D. ការរលាក (Burning)"]
+                },
+                "answer": { "en": "A. Shearing force", "km": "A. កម្លាំងកាត់ (Shearing force)" }
+            },
+            {
+                "number": 7,
+                "type": "mcq",
+                "question": {
+                    "en": "What is important in the treatment of dirty wound? (One correct answer)",
+                    "km": "តើអ្វីជាចំណុចសំខាន់ក្នុងការព្យាបាលរបួសកខ្វក់? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Antibiotic", "B. Antitetanic", "C. Wound washed out", "D. Suture"],
+                    "km": ["A. ថ្នាំអង់ទីប៊ីយ៉ូទិក (Antibiotic)", "B. ថ្នាំប្រឆាំងតេតាណុស (Antitetanic)", "C. ការលាងសម្អាតរបួស (Wound washed out)", "D. ការដេរ (Suture)"]
+                },
+                "answer": { "en": "C. Wound washed out", "km": "C. ការលាងសម្អាតរបួស (Wound washed out)" }
+            },
+            {
+                "number": 8,
+                "type": "mcq",
+                "question": {
+                    "en": "Why do you need x-ray for wound? (One correct answer)",
+                    "km": "ហេតុអ្វីអ្នកត្រូវការថតកាំរស្មីអ៊ិចសម្រាប់របួស? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. to seek for fracture and foreign body", "B. to reveal the depth of wound", "C. to find the vascular injury", "D. to find the tendon injury"],
+                    "km": ["A. ដើម្បីរកមើលការបាក់ឆ្អឹង និងវត្ថុបរទេស", "B. ដើម្បីបង្ហាញជម្រៅរបួស", "C. ដើម្បីរកឃើញរបួសសរសៃឈាម", "D. ដើម្បីរកឃើញរបួសសរសៃពួរ"]
+                },
+                "answer": { "en": "A. to seek for fracture and foreign body", "km": "A. ដើម្បីរកមើលការបាក់ឆ្អឹង និងវត្ថុបរទេស" }
+            },
+            {
+                "number": 9,
+                "type": "mcq",
+                "question": {
+                    "en": "What is the characteristic of skeletal muscle? (One correct answer)",
+                    "km": "តើអ្វីជាលក្ខណៈរបស់សាច់ដុំគ្រោងឆ្អឹង? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Reflex", "B. Automatic", "C. Neurovegetative", "D. Voluntary"],
+                    "km": ["A. រីហ្វ្លិច (Reflex)", "B. ស្វ័យប្រវត្តិ (Automatic)", "C. ប្រព័ន្ធសរសៃប្រសាទស្វយ័ត (Neurovegetative)", "D. ស្ម័គ្រចិត្ត (Voluntary)"]
+                },
+                "answer": { "en": "D. Voluntary", "km": "D. ស្ម័គ្រចិត្ត (Voluntary)" }
+            },
+            {
+                "number": 10,
+                "type": "mcq",
+                "question": {
+                    "en": "What are the end parts of muscle? (One correct answer)",
+                    "km": "តើអ្វីជាផ្នែកចុងនៃសាច់ដុំ? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Fascicle", "B. Endomysium", "C. Tendons", "D. Muscle fibers"],
+                    "km": ["A. បាច់សរសៃសាច់ដុំ (Fascicle)", "B. បណ្ដុំសរសៃសាច់ដុំ (Endomysium)", "C. សរសៃពួរ (Tendons)", "D. សរសៃសាច់ដុំ (Muscle fibers)"]
+                },
+                "answer": { "en": "C. Tendons", "km": "C. សរសៃពួរ (Tendons)" }
+            },
+            {
+                "number": 11,
+                "type": "mcq",
+                "question": {
+                    "en": "What do we call the action of a muscle which opposes against the other muscles? (One correct answer)",
+                    "km": "តើយើងហៅសកម្មភាពនៃសាច់ដុំមួយដែលទប់ទល់នឹងសាច់ដុំផ្សេងទៀតថាអ្វី? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Synergetic", "B. Antagonist", "C. Agonist", "D. Fixation-Stabilizer"],
+                    "km": ["A. ស៊ីណឺហ្សីតិច (Synergetic)", "B. អាន់តាហ្គូណីស (Antagonist)", "C. អាហ្គូណីស (Agonist)", "D. ការទប់/ស្ថិរភាព (Fixation-Stabilizer)"]
+                },
+                "answer": { "en": "B. Antagonist", "km": "B. អាន់តាហ្គូណីស (Antagonist)" }
+            },
+            {
+                "number": 12,
+                "type": "mcq",
+                "question": {
+                    "en": "What is the grade 3 muscle injury? (One correct answer)",
+                    "km": "តើអ្វីជាការរងរបួសសាច់ដុំកម្រិត 3? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Complete rupture", "B. Contusion", "C. Partial Rupture", "D. Almost complete rupture"],
+                    "km": ["A. ដាច់រហែកទាំងស្រុង (Complete rupture)", "B. ជាំ (Contusion)", "C. ដាច់រហែកមួយផ្នែក (Partial Rupture)", "D. ដាច់រហែកស្ទើរតែទាំងស្រុង (Almost complete rupture)"]
+                },
+                "answer": { "en": "A. Complete rupture", "km": "A. ដាច់រហែកទាំងស្រុង (Complete rupture)" }
+            },
+            {
+                "number": 13,
+                "type": "mcq",
+                "question": {
+                    "en": "If the tendon is completely ruptured, what can we find in physical examination? (One correct answer)",
+                    "km": "ប្រសិនបើសរសៃពួរដាច់រហែកទាំងស្រុង តើយើងអាចរកឃើញអ្វីក្នុងការពិនិត្យរាងកាយ? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Loss of its function", "B. Painful along the tendon", "C. Swelling along the tendon", "D. Weakness of the corresponded muscle"],
+                    "km": ["A. បាត់បង់មុខងាររបស់វា (Loss of its function)", "B. ឈឺចាប់តាមសរសៃពួរ (Painful along the tendon)", "C. ហើមតាមសរសៃពួរ (Swelling along the tendon)", "D. ភាពទន់ខ្សោយនៃសាច់ដុំដែលត្រូវគ្នា (Weakness of the corresponded muscle)"]
+                },
+                "answer": { "en": "A. Loss of its function", "km": "A. បាត់បង់មុខងាររបស់វា (Loss of its function)" }
+            },
+            {
+                "number": 14,
+                "type": "mcq",
+                "question": {
+                    "en": "What are the cells that make bone? (One correct answer)",
+                    "km": "តើអ្វីជាកោសិកាដែលបង្កើតឆ្អឹង? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Osteogenesis", "B. Osteoconductive", "C. Osteoclast", "D. Osteoblast"],
+                    "km": ["A. អូស្យូជិនណេស៊ីស (Osteogenesis)", "B. អូស្យូខនឌុកទីវ (Osteoconductive)", "C. អូស្យូក្លាស (Osteoclast)", "D. អូស្យូប្លាស (Osteoblast)"]
+                },
+                "answer": { "en": "D. Osteoblast", "km": "D. អូស្យូប្លាស (Osteoblast)" }
+            },
+            {
+                "number": 15,
+                "type": "mcq",
+                "question": {
+                    "en": "In which phase the bone transform itself to the normal structure after fracture? (One correct answer)",
+                    "km": "តើក្នុងដំណាក់កាលណាដែលឆ្អឹងផ្លាស់ប្តូរខ្លួនវាទៅជារចនាសម្ព័ន្ធធម្មតាវិញបន្ទាប់ពីបាក់? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Inflammatory phase", "B. Soft callus formation", "C. Hard callus formation", "D. Remodeling"],
+                    "km": ["A. ដំណាក់កាលរលាក (Inflammatory phase)", "B. ការបង្កើតកាល់លូទន់ (Soft callus formation)", "C. ការបង្កើតកាល់លូរឹង (Hard callus formation)", "D. ការរៀបចំរចនាសម្ព័ន្ធឡើងវិញ (Remodeling)"]
+                },
+                "answer": { "en": "D. Remodeling", "km": "D. ការរៀបចំរចនាសម្ព័ន្ធឡើងវិញ (Remodeling)" }
+            },
+            {
+                "number": 16,
+                "type": "mcq",
+                "question": {
+                    "en": "Which is the best blood supply to the bone? (One correct answer)",
+                    "km": "តើអ្វីជាការផ្គត់ផ្គង់ឈាមល្អបំផុតទៅកាន់ឆ្អឹង? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. From metaphyseal artery", "B. From intramedullary canal", "C. From muscle to the bone through periosteum", "D. From epiphyseal artery"],
+                    "km": ["A. ពីសរសៃឈាមមេតាភីសៀល (From metaphyseal artery)", "B. ពីFrom intramedullary canal (From intramedullary canal)", "C. ពីសាច់ដុំទៅឆ្អឹងតាមរយៈភ្នាសគ្របឆ្អឹង (From muscle to the bone through periosteum)", "D. ពីសរសៃឈាមអេពីភីសៀល (From epiphyseal artery)"]
+                },
+                "answer": { "en": "C. From muscle to the bone through periosteum", "km": "C. ពីសាច់ដុំទៅឆ្អឹងតាមរយៈភ្នាសគ្របឆ្អឹង (From muscle to the bone through periosteum)" }
+            },
+            {
+                "number": 17,
+                "type": "mcq",
+                "question": {
+                    "en": "What does Open Fracture mean? (One correct answer)",
+                    "km": "តើការបាក់ឆ្អឹងបើកចំហ (Open Fracture) មានន័យដូចម្តេច? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Fracture with opening skin lesion", "B. Broken bone as simple", "C. Fracture with vascular injury", "D. Very comminuted fracture"],
+                    "km": ["A. ការបាក់ឆ្អឹងដែលមានរបួសស្បែកបើកចំហ", "B. ការបាក់ឆ្អឹងធម្មតា", "C. ការបាក់ឆ្អឹងដែលមានរបួសសរសៃឈាម", "D. ការបាក់ឆ្អឹងដែលបែកជាបំណែកតូចៗច្រើន"]
+                },
+                "answer": { "en": "A. Fracture with opening skin lesion", "km": "A. ការបាក់ឆ្អឹងដែលមានរបួសស្បែកបើកចំហ" }
+            },
+            {
+                "number": 18,
+                "type": "mcq",
+                "question": {
+                    "en": "What is type B in AO Classification of fracture? (One correct answer)",
+                    "km": "តើអ្វីជាប្រភេទ B ក្នុងការចាត់ថ្នាក់ AO នៃការបាក់ឆ្អឹង? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Wedge fracture", "B. Simple fracture", "C. Comminuted fracture", "D. Segmented fracture"],
+                    "km": ["A. ការបាក់ឆ្អឹងរាងក្រូចឆ្មារ (Wedge fracture)", "B. ការបាក់ឆ្អឹងសាមញ្ញ (Simple fracture)", "C. ការបាក់ឆ្អឹងបែកជាបំណែក (Comminuted fracture)", "D. ការបាក់ឆ្អឹងជាកំណាត់ (Segmented fracture)"]
+                },
+                "answer": { "en": "A. Wedge fracture", "km": "A. ការបាក់ឆ្អឹងរាងក្រូចឆ្មារ (Wedge fracture)" }
+            },
+            {
+                "number": 19,
+                "type": "mcq",
+                "question": {
+                    "en": "One patient was transferred to your hospital for polytrauma. Which of the following statement is the first priority in your clinical examination? (One correct answer)",
+                    "km": "អ្នកជំងឺម្នាក់ត្រូវបានបញ្ជូនទៅមន្ទីរពេទ្យរបស់អ្នកដោយសាររបួសច្រើនកន្លែង (polytrauma)។ តើសេចក្តីថ្លែងការណ៍មួយណាខាងក្រោមជាអាទិភាពដំបូងក្នុងការពិនិត្យគ្លីនិករបស់អ្នក? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Disability", "B. Breathing", "C. Circulation", "D. Airway"],
+                    "km": ["A. ពិការភាព (Disability)", "B. ការដកដង្ហើម (Breathing)", "C. ចរន្តឈាម (Circulation)", "D. ផ្លូវដង្ហើម (Airway)"]
+                },
+                "answer": { "en": "D. Airway", "km": "D. ផ្លូវដង្ហើម (Airway)" }
+            },
+            {
+                "number": 20,
+                "type": "mcq",
+                "question": {
+                    "en": "What is bone malunion? (One correct answer)",
+                    "km": "តើអ្វីទៅជា bone malunion? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Non-healing bone", "B. Healed bone but infected", "C. Healed bone in abnormal position", "D. Delayed healing bone"],
+                    "km": ["A. ឆ្អឹងមិនជាសះស្បើយ", "B. ឆ្អឹងជាសះស្បើយតែមានការឆ្លងមេរោគ", "C. ឆ្អឹងជាសះស្បើយក្នុងទីតាំងមិនធម្មតា", "D. ឆ្អឹងជាសះស្បើយយឺត"]
+                },
+                "answer": { "en": "C. Healed bone in abnormal position", "km": "C. ឆ្អឹងជាសះស្បើយក្នុងទីតាំងមិនធម្មតា" }
+            },
+            {
+                "number": 21,
+                "type": "mcq",
+                "question": {
+                    "en": "Which one of those statements is from the conservative treatment? (One correct answer)",
+                    "km": "តើសេចក្តីថ្លែងការណ៍មួយណាដែលជាការព្យាបាលបែបអភិរក្ស? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Pin fixation", "B. External fixation", "C. Nailing", "D. Traction"],
+                    "km": ["A. ការដាក់ដែក (Pin fixation)", "B. ការដាក់ដែកក្រៅ (External fixation)", "C. ការដាក់ដែកក្នុងឆ្អឹង (Nailing)", "D. ការទាញ (Traction)"]
+                },
+                "answer": { "en": "D. Traction", "km": "D. ការទាញ (Traction)" }
+            },
+            {
+                "number": 22,
+                "type": "mcq",
+                "question": {
+                    "en": "On x-ray film, which color can you identify the air? (One correct answer)",
+                    "km": "នៅលើកាំរស្មីអ៊ិច តើអ្នកអាចកំណត់អត្តសញ្ញាណខ្យល់ដោយពណ៌អ្វី? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. White color", "B. Grey color", "C. Black color", "D. Mixed color"],
+                    "km": ["A. ពណ៌ស (White color)", "B. ពណ៌ប្រផេះ (Grey color)", "C. ពណ៌ខ្មៅ (Black color)", "D. ពណ៌ចម្រុះ (Mixed color)"]
+                },
+                "answer": { "en": "C. Black color", "km": "C. ពណ៌ខ្មៅ (Black color)" }
+            },
+            {
+                "number": 23,
+                "type": "mcq",
+                "question": {
+                    "en": "In long bone x-ray, we should see clearly… (One correct answer)",
+                    "km": "ក្នុងការថតកាំរស្មីអ៊ិចឆ្អឹងវែង យើងគួរមើលឃើញច្បាស់... (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. The joints below and above", "B. The diaphysis", "C. The both metaphysis", "D. The fracture"],
+                    "km": ["A. សន្លាក់ខាងក្រោម និងខាងលើ", "B. តួឆ្អឹង (Diaphysis)", "C. តំបន់មេតាភីស៊ីសទាំងពីរ (Both metaphysis)", "D. ការបាក់ឆ្អឹង (Fracture)"]
+                },
+                "answer": { "en": "A. The joints below and above", "km": "A. សន្លាក់ខាងក្រោម និងខាងលើ" }
+            },
+            {
+                "number": 24,
+                "type": "mcq",
+                "question": {
+                    "en": "In difficult situation, what should we do to identify the fracture? (One correct answer)",
+                    "km": "ក្នុងស្ថានភាពលំបាក តើយើងគួរធ្វើអ្វីដើម្បីកំណត់អត្តសញ្ញាណការបាក់ឆ្អឹង? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Get the good resolution film", "B. Ask for new x-ray", "C. Follow the cortex of bone", "D. Ask the imaging doctor to help"],
+                    "km": ["A. ទទួលបានរូបភាពដែលមានគុណភាពល្អ", "B. ស្នើសុំថតកាំរស្មីអ៊ិចថ្មី", "C. តាមដានគែមឆ្អឹង (cortex of bone)", "D. ស្នើសុំជំនួយពីគ្រូពេទ្យផ្នែករូបភាពវិនិច្ឆ័យ"]
+                },
+                "answer": { "en": "C. Follow the cortex of bone", "km": "C. តាមដានគែមឆ្អឹង (cortex of bone)" }
+            },
+            {
+                "number": 25,
+                "type": "mcq",
+                "question": {
+                    "en": "A young lady needs to get x-ray done, which question should you ask her? (One correct answer)",
+                    "km": "ស្ត្រីវ័យក្មេងម្នាក់ត្រូវថតកាំរស្មីអ៊ិច តើអ្នកគួរតែសួរនាងនូវសំណួរអ្វី? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. If she has any relatives with her", "B. If she has a metal in her body", "C. If she did eat or drink before the examination", "D. If she is pregnant"],
+                    "km": ["A. ថាតើនាងមានសាច់ញាតិជាមួយនាងដែរឬទេ", "B. ថាតើនាងមានលោហៈនៅក្នុងខ្លួននាងដែរឬទេ", "C. ថាតើនាងបានញ៉ាំ ឬផឹកអ្វីមុនពេលពិនិត្យដែរឬទេ", "D. ថាតើនាងមានផ្ទៃពោះដែរឬទេ"]
+                },
+                "answer": { "en": "D. If she is pregnant", "km": "D. ថាតើនាងមានផ្ទៃពោះដែរឬទេ" }
+            },
+            {
+                "number": 26,
+                "type": "mcq",
+                "question": {
+                    "en": "What is the common injury mechanism of clavicle fracture? (One correct answer)",
+                    "km": "តើអ្វីជាយន្តការរបួសទូទៅនៃការបាក់ឆ្អឹងកង? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Direct shock on the shoulder", "B. Fall on outstretched hand", "C. Fall on the back", "D. Fall on the chest wall"],
+                    "km": ["A. ការប៉ះទង្គិចផ្ទាល់លើស្មា", "B. ដួលដោយប្រើដៃច្រាន", "C. ដួលផ្កាប់មុខ", "D. ដួលលើទ្រូង"]
+                },
+                "answer": { "en": "A. Direct shock on the shoulder", "km": "A. ការប៉ះទង្គិចផ្ទាល់លើស្មា" }
+            },
+            {
+                "number": 27,
+                "type": "mcq",
+                "question": {
+                    "en": "A patient has clavicle fracture associated with some ribs fracture. What is important in your examination? (One correct answer)",
+                    "km": "អ្នកជំងឺមានការបាក់ឆ្អឹងកងដែលជាប់ទាក់ទងនឹងការបាក់ឆ្អឹងជំនីរមួយចំនួន។ តើអ្វីជាចំណុចសំខាន់ក្នុងការពិនិត្យរបស់អ្នក? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Careful inspection for his breathing difficulty", "B. Percussion to look for pneumothorax", "C. Auscultation for hemo or pneumothorax", "D. Take the vital signs for any serious condition"],
+                    "km": ["A. ការពិនិត្យដោយប្រុងប្រយ័ត្នចំពោះការពិបាកដកដង្ហើមរបស់គាត់", "B. ការគោះដើម្បីរកមើលខ្យល់ក្នុងសួត (pneumothorax)", "C. ការស្ដាប់ដើម្បីរកមើលឈាម ឬខ្យល់ក្នុងសួត (hemo or pneumothorax)", "D. ពិនិត្យសញ្ញាជីវិតដើម្បីរកមើលស្ថានភាពធ្ងន់ធ្ងរណាមួយ"]
+                },
+                "answer": { "en": "C. Auscultation for hemo or pneumothorax", "km": "C. ការស្ដាប់ដើម្បីរកមើលឈាម ឬខ្យល់ក្នុងសួត (hemo or pneumothorax)" }
+            },
+            {
+                "number": 28,
+                "type": "mcq",
+                "question": {
+                    "en": "What is the best treatment of most clavicle fractures? (One correct answer)",
+                    "km": "តើអ្វីជាការព្យាបាលល្អបំផុតសម្រាប់ការបាក់ឆ្អឹងកងភាគច្រើន? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Conservative treatment", "B. Pin fixation", "C. External fixation", "D. Plate and screws"],
+                    "km": ["A. ការព្យាបាលបែបអភិរក្ស", "B. ការដាក់ដែក (Pin fixation)", "C. ការដាក់ដែកក្រៅ (External fixation)", "D. ផ្លាក និងវីស (Plate and screws)"]
+                },
+                "answer": { "en": "A. Conservative treatment", "km": "A. ការព្យាបាលបែបអភិរក្ស" }
+            },
+            {
+                "number": 29,
+                "type": "mcq",
+                "question": {
+                    "en": "In the humerus shaft fracture, which is the common problem that you should look for? (One correct answer)",
+                    "km": "ក្នុងការបាក់ឆ្អឹងដងខ្លួន humerus តើបញ្ហាទូទៅមួយណាដែលអ្នកគួរតែរកមើល? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Complicated fracture", "B. Radial nerve injury", "C. Brachial plexus injury", "D. Lesion to humeral artery"],
+                    "km": ["A. ការបាក់ឆ្អឹងស្មុគស្មាញ", "B. របួសសរសៃប្រសាទរ៉ាដ្យាល់ (Radial nerve injury)", "C. របួសបណ្តុំសរសៃប្រសាទដើមដៃ (Brachial plexus injury)", "D. ដំបៅសរសៃឈាម humerus (Lesion to humeral artery)"]
+                },
+                "answer": { "en": "B. Radial nerve injury", "km": "B. របួសសរសៃប្រសាទរ៉ាដ្យាល់ (Radial nerve injury)" }
+            },
+            {
+                "number": 30,
+                "type": "mcq",
+                "question": {
+                    "en": "What is Monteggia fracture? (One correct answer)",
+                    "km": "តើអ្វីជា Monteggia fracture? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Comminuted radial fracture with ligament injury", "B. Radius fracture associated with distal radioulnar joint dislocation", "C. Distal radius fracture with elbow dislocation", "D. Ulna fracture with dislocation of radial head"],
+                    "km": ["A. ការបាក់ឆ្អឹងរ៉ាដ្យាល់ដែលបែកជាបំណែកជាមួយនឹងរបួសសរសៃពួរ", "B. ការបាក់ឆ្អឹងរ៉ាដ្យាល់ដែលជាប់ទាក់ទងនឹងការរបូតសន្លាក់រ៉ាដ្យូអ៊ុលណារផ្នែកខាងចុង (distal radioulnar joint dislocation)", "C. ការបាក់ឆ្អឹងរ៉ាដ្យាល់ផ្នែកខាងចុងជាមួយនឹងការរបូតកែងដៃ", "D. ការបាក់ឆ្អឹងអ៊ុលណាជាមួយនឹងការរបូតក្បាលរ៉ាដ្យាល់ (dislocation of radial head)"]
+                },
+                "answer": { "en": "D. Ulna fracture with dislocation of radial head", "km": "D. ការបាក់ឆ្អឹងអ៊ុលណាជាមួយនឹងការរបូតក្បាលរ៉ាដ្យាល់ (dislocation of radial head)" }
+            },
+            {
+                "number": 31,
+                "type": "mcq",
+                "question": {
+                    "en": "What is Galeazzi fracture? (One correct answer)",
+                    "km": "តើអ្វីជា Galeazzi fracture? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Comminuted radial fracture with ligament injury", "B. Radius fracture associated with distal radioulnar joint dislocation", "C. Distal radius fracture with elbow dislocation", "D.  Ulna fracture with dislocation of radial head"],
+                    "km": ["A. ការបាក់ឆ្អឹងរ៉ាដ្យាល់ដែលបែកជាបំណែកជាមួយនឹងរបួសសរសៃពួរ", "B. ការបាក់ឆ្អឹងរ៉ាដ្យាល់ដែលជាប់ទាក់ទងនឹងការរបូតសន្លាក់រ៉ាដ្យូអ៊ុលណារផ្នែកខាងចុង (distal radioulnar joint dislocation)", "C. ការបាក់ឆ្អឹងរ៉ាដ្យាល់ផ្នែកខាងចុងជាមួយនឹងការរបូតកែងដៃ", "D. ការបាក់ឆ្អឹងអ៊ុលណាជាមួយនឹងការរបូតក្បាលរ៉ាដ្យាល់"]
+                },
+                "answer": { "en": "B. Radius fracture associated with distal radioulnar joint dislocation", "km": "B. ការបាក់ឆ្អឹងរ៉ាដ្យាល់ដែលជាប់ទាក់ទងនឹងការរបូតសន្លាក់រ៉ាដ្យូអ៊ុលណារផ្នែកខាងចុង (distal radioulnar joint dislocation)" }
+            },
+            {
+                "number": 32,
+                "type": "mcq",
+                "question": {
+                    "en": "Without the treatment, the distal radius fracture usually heals with? (One correct answer)",
+                    "km": "បើគ្មានការព្យាបាលទេ ការបាក់ឆ្អឹងរ៉ាដ្យាល់ផ្នែកខាងចុង ជាធម្មតាជាសះស្បើយដោយ? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Delayed union", "B. Malunion", "C. Nonunion", "D. Infection"],
+                    "km": ["A. ការជាយឺត (Delayed union)", "B. ការជាមិនល្អ (Malunion)", "C. ការមិនជា (Nonunion)", "D. ការឆ្លងមេរោគ (Infection)"]
+                },
+                "answer": { "en": "B. Malunion", "km": "B. ការជាមិនល្អ (Malunion)" }
+            },
+            {
+                "number": 33,
+                "type": "mcq",
+                "question": {
+                    "en": "What is the best treatment of distal radius facture in elderly people? (One correct answer)",
+                    "km": "តើអ្វីជាការព្យាបាលដ៏ល្អបំផុតសម្រាប់ការបាក់ឆ្អឹងរ៉ាដ្យាល់ផ្នែកខាងចុងចំពោះមនុស្សចាស់? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Conservative treatment", "B. Plat-screws", "C. Pin fixation", "D. External fixation"],
+                    "km": ["A. ការព្យាបាលបែបអភិរក្ស", "B. ផ្លាក-វីស (Plate-screws)", "C. ការដាក់ដែក (Pin fixation)", "D. ការដាក់ដែកក្រៅ (External fixation)"]
+                },
+                "answer": { "en": "A. Conservative treatment", "km": "A. ការព្យាបាលបែបអភិរក្ស" }
+            },
+            {
+                "number": 34,
+                "type": "mcq",
+                "question": {
+                    "en": "Which location is the common area of sprain? (One correct answer)",
+                    "km": "តើទីតាំងមួយណាជាតំបន់ទូទៅនៃការកន្ត្រាក់សន្លាក់ (sprain)? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Elbow sprain", "B. Shoulder sprain", "C. Knee sprain", "D. Ankle sprain"],
+                    "km": ["A. កន្ត្រាក់កែងដៃ (Elbow sprain)", "B. កន្ត្រាក់ស្មា (Shoulder sprain)", "C. កន្ត្រាក់ជង្គង់ (Knee sprain)", "D. កន្ត្រាក់កជើង (Ankle sprain)"]
+                },
+                "answer": { "en": "D. Ankle sprain", "km": "D. កន្ត្រាក់កជើង (Ankle sprain)" }
+            },
+            {
+                "number": 35,
+                "type": "mcq",
+                "question": {
+                    "en": "Which structure is usually injured during the joint sprain? (One correct answer)",
+                    "km": "តើរចនាសម្ព័ន្ធមួយណាដែលជាធម្មតាត្រូវបានរងរបួសក្នុងអំឡុងពេលកន្ត្រាក់សន្លាក់? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Muscle", "B. Tendon", "C. Ligament", "D. Bone"],
+                    "km": ["A. សាច់ដុំ (Muscle)", "B. សរសៃពួរ (Tendon)", "C. សរសៃចង (Ligament)", "D. ឆ្អឹង (Bone)"]
+                },
+                "answer": { "en": "C. Ligament", "km": "C. សរសៃចង (Ligament)" }
+            },
+            {
+                "number": 36,
+                "type": "mcq",
+                "question": {
+                    "en": "In history of sprain, usually we can find that specific element? (One correct answer)",
+                    "km": "នៅក្នុងប្រវត្តិសាស្រ្តនៃការកន្ត្រាក់សន្លាក់ ជាធម្មតាយើងអាចរកឃើញធាតុជាក់លាក់នោះ? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. A sharp pain after a pop sound", "B. A lot of swelling", "C. Unable to move the injured limb", "D. Skin ecchymosis with pain"],
+                    "km": ["A. ការឈឺចាប់ស្រួចស្រាវបន្ទាប់ពីឮសំឡេងផ្ទុះ", "B. ការហើមខ្លាំង", "C. មិនអាចរំកិលអវយវៈដែលរងរបួសបាន", "D. ស្នាមជាំស្បែកជាមួយនឹងការឈឺចាប់"]
+                },
+                "answer": { "en": "A. A sharp pain after a pop sound", "km": "A. ការឈឺចាប់ស្រួចស្រាវបន្ទាប់ពីឮសំឡេងផ្ទុះ" }
+            },
+            {
+                "number": 37,
+                "type": "mcq",
+                "question": {
+                    "en": "Which one of below investigation that we can visualize the ligament status? (One correct answer)",
+                    "km": "តើការពិនិត្យមួយណាខាងក្រោមដែលយើងអាចមើលឃើញស្ថានភាពសរសៃចង? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. MRI", "B. CT Scan", "C. X-ray", "D. Ultrasonography"],
+                    "km": ["A. MRI", "B. CT Scan", "C. X-ray", "D. អ៊ុលត្រាសោន (Ultrasonography)"]
+                },
+                "answer": { "en": "A. MRI", "km": "A. MRI" }
+            },
+            {
+                "number": 38,
+                "type": "mcq",
+                "question": {
+                    "en": "Which one of these elements would help the joint to get back to normal range of motion? (One correct answer)",
+                    "km": "តើធាតុមួយណាដែលនឹងជួយសន្លាក់ឱ្យត្រឡប់ទៅរកចលនាធម្មតាវិញ? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Ice compression", "B. A lot of pain killer", "C. Rehabilitation", "D. Splinting"],
+                    "km": ["A. ការបង្ហាប់ទឹកកក (Ice compression)", "B. ថ្នាំបំបាត់ការឈឺចាប់ច្រើន (A lot of pain killer)", "C. ការស្តារនីតិសម្បទា (Rehabilitation)", "D. ការដាក់ទ្រនាប់ (Splinting)"]
+                },
+                "answer": { "en": "C. Rehabilitation", "km": "C. ការស្តារនីតិសម្បទា (Rehabilitation)" }
+            },
+            {
+                "number": 39,
+                "type": "mcq",
+                "question": {
+                    "en": "What is the proper Elevation means in the treatment of sprain? (One correct answer)",
+                    "km": "តើអ្វីទៅជាការលើកកម្ពស់ត្រឹមត្រូវ (Proper Elevation) ក្នុងការព្យាបាលការកន្ត្រាក់សន្លាក់? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. As higher as possible", "B. Above the other side limb", "C. Above the bed", "D. Above the heart level"],
+                    "km": ["A. ឱ្យខ្ពស់តាមដែលអាចធ្វើទៅបាន", "B. ខ្ពស់ជាងអវយវៈម្ខាងទៀត", "C. ខ្ពស់ជាងគ្រែ", "D. ខ្ពស់ជាងកម្រិតបេះដូង"]
+                },
+                "answer": { "en": "D. Above the heart level", "km": "D. ខ្ពស់ជាងកម្រិតបេះដូង" }
+            },
+            {
+                "number": 40,
+                "type": "mcq",
+                "question": {
+                    "en": "What does Subluxation means? (One correct answer)",
+                    "km": "តើ Subluxation មានន័យដូចម្តេច? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. There is a partial contact of cartilage", "B. Complete displaced of the joint", "C. Joint not in the proper position", "D. Joint displaced with fracture"],
+                    "km": ["A. មានការប៉ះទង្គិចមួយផ្នែកនៃឆ្អឹងខ្ចី", "B. ការរបូតសន្លាក់ទាំងស្រុង", "C. សន្លាក់មិននៅក្នុងទីតាំងត្រឹមត្រូវ", "D. សន្លាក់របូតជាមួយនឹងការបាក់ឆ្អឹង"]
+                },
+                "answer": { "en": "A. There is a partial contact of cartilage", "km": "A. មានការប៉ះទង្គិចមួយផ្នែកនៃឆ្អឹងខ្ចី" }
+            },
+            {
+                "number": 41,
+                "type": "mcq",
+                "question": {
+                    "en": "What are the main structures that stabilize the joint? (One correct answer)",
+                    "km": "តើរចនាសម្ព័ន្ធសំខាន់ៗអ្វីខ្លះដែលធ្វើឱ្យសន្លាក់មានស្ថិរភាព? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Capsule and ligaments", "B. Capsule and tendon", "C. Tendon and ligament", "D. Tendon and capsule"],
+                    "km": ["A. ស្រោមសន្លាក់ និងសរសៃចង (Capsule and ligaments)", "B. ស្រោមសន្លាក់ និងសរសៃពួរ (Capsule and tendon)", "C. សរសៃពួរ និងសរសៃចង (Tendon and ligament)", "D. សរសៃពួរ និងស្រោមសន្លាក់ (Tendon and capsule)"]
+                },
+                "answer": { "en": "A. Capsule and ligaments", "km": "A. ស្រោមសន្លាក់ និងសរសៃចង (Capsule and ligaments)" }
+            },
+            {
+                "number": 42,
+                "type": "mcq",
+                "question": {
+                    "en": "What is the best sign for dislocation? (One correct answer)",
+                    "km": "តើអ្វីជាសញ្ញាល្អបំផុតនៃការរបូតសន្លាក់ (dislocation)? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. A lot of pain with movement", "B. A lot of swelling around the joint", "C. Deformity with ecchymosis", "D. A fixed painful deformity"],
+                    "km": ["A. ការឈឺចាប់ខ្លាំងជាមួយនឹងចលនា", "B. ការហើមខ្លាំងនៅជុំវិញសន្លាក់", "C. ការខូចទ្រង់ទ្រាយជាមួយនឹងស្នាមជាំ", "D. ការខូចទ្រង់ទ្រាយឈឺចាប់ជាប់គាំង"]
+                },
+                "answer": { "en": "D. A fixed painful deformity", "km": "D. ការខូចទ្រង់ទ្រាយឈឺចាប់ជាប់គាំង" }
+            },
+            {
+                "number": 43,
+                "type": "mcq",
+                "question": {
+                    "en": "What is the main concern that you need to worry when the patient has dislocation? (One correct answer)",
+                    "km": "តើអ្វីជាកង្វល់ចម្បងដែលអ្នកត្រូវព្រួយបារម្ភនៅពេលអ្នកជំងឺមានការរបូតសន្លាក់? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Vascular injury", "B. Nerve injury", "C. Bone fracture", "D. Soft tissue injury"],
+                    "km": ["A. របួសសរសៃឈាម (Vascular injury)", "B. របួសសរសៃប្រសាទ (Nerve injury)", "C. ការបាក់ឆ្អឹង (Bone fracture)", "D. របួសជាលិកាទន់ (Soft tissue injury)"]
+                },
+                "answer": { "en": "A. Vascular injury", "km": "A. របួសសរសៃឈាម (Vascular injury)" }
+            },
+            {
+                "number": 44,
+                "type": "mcq",
+                "question": {
+                    "en": "What are the late complication that we usually see in dislocation after the treatment? (One correct answer)",
+                    "km": "តើអ្វីជាផលវិបាកយឺតយ៉ាវដែលយើងតែងតែឃើញក្នុងការរបូតសន្លាក់ក្រោយការព្យាបាល? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Deformity, instability, chronic pain", "B. Instability, recurrent dislocation, arthritis", "C. Chronic pain, instability, infection", "D. Joint weakness, arthritis, deformity"],
+                    "km": ["A. ការខូចទ្រង់ទ្រាយ អស្ថិរភាព ការឈឺចាប់រ៉ាំរ៉ៃ", "B. អស្ថិរភាព ការរបូតសន្លាក់កើតឡើងវិញ រលាកសន្លាក់", "C. ការឈឺចាប់រ៉ាំរ៉ៃ អស្ថិរភាព ការឆ្លងមេរោគ", "D. សន្លាក់ចុះខ្សោយ រលាកសន្លាក់ ការខូចទ្រង់ទ្រាយ"]
+                },
+                "answer": { "en": "B. Instability, recurrent dislocation, arthritis", "km": "B. អស្ថិរភាព ការរបូតសន្លាក់កើតឡើងវិញ រលាកសន្លាក់" }
+            },
+            {
+                "number": 45,
+                "type": "mcq",
+                "question": {
+                    "en": "What is the proper treatment in joint dislocation? (One correct answer)",
+                    "km": "តើអ្វីជាការព្យាបាលត្រឹមត្រូវក្នុងការរបូតសន្លាក់? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Close reduction without anesthesia", "B. Close reduction under general anesthesia", "C. Close reduction under spinal anesthesia", "D. Surgical open reduction"],
+                    "km": ["A. ការដាក់ចូលសន្លាក់វិញដោយមិនប្រើថ្នាំស្ពឹក (Close reduction without anesthesia)", "B. ការដាក់ចូលសន្លាក់វិញក្រោមការប្រើថ្នាំស្ពឹកទូទៅ (Close reduction under general anesthesia)", "C. ការដាក់ចូលសន្លាក់វិញក្រោមការប្រើថ្នាំស្ពឹកឆ្អឹងខ្នង (Close reduction under spinal anesthesia)", "D. ការវះកាត់បើកដើម្បីដាក់ចូលសន្លាក់វិញ (Surgical open reduction)"]
+                },
+                "answer": { "en": "B. Close reduction under general anesthesia", "km": "B. ការដាក់ចូលសន្លាក់វិញក្រោមការប្រើថ្នាំស្ពឹកទូទៅ (Close reduction under general anesthesia)" }
+            },
+            {
+                "number": 46,
+                "type": "mcq",
+                "question": {
+                    "en": "What is the most common mode of transmission of osteomyelitis in children? (One correct answer)",
+                    "km": "តើអ្វីជាវិធីសាស្រ្តចម្លងទូទៅបំផុតនៃការឆ្លងមេរោគឆ្អឹង (osteomyelitis) ចំពោះកុមារ? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Hematogenous route", "B. Contiguity", "C. Traumatic open wound", "D. Viral infection"],
+                    "km": ["A. តាមរយៈចរន្តឈាម (Hematogenous route)", "B. តាមរយៈការប៉ះផ្ទាល់ (Contiguity)", "C. របួសបើកចំហដោយសារការប៉ះទង្គិច (Traumatic open wound)", "D. ការឆ្លងមេរោគដោយវីរុស (Viral infection)"]
+                },
+                "answer": { "en": "A. Hematogenous route", "km": "A. តាមរយៈចរន្តឈាម (Hematogenous route)" }
+            },
+            {
+                "number": 47,
+                "type": "mcq",
+                "question": {
+                    "en": "What is the common complication of bone infection? (One correct answer)",
+                    "km": "តើអ្វីជាផលវិបាកទូទៅនៃការឆ្លងមេរោគឆ្អឹង? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Arthritis", "B. Septicemia", "C. Metastatic infection", "D. Chronic osteomyelitis"],
+                    "km": ["A. រលាកសន្លាក់ (Arthritis)", "B. ការឆ្លងមេរោគក្នុងឈាម (Septicemia)", "C. ការឆ្លងរាលដាល (Metastatic infection)", "D. ការឆ្លងមេរោគឆ្អឹងរ៉ាំរ៉ៃ (Chronic osteomyelitis)"]
+                },
+                "answer": { "en": "D. Chronic osteomyelitis", "km": "D. ការឆ្លងមេរោគឆ្អឹងរ៉ាំរ៉ៃ (Chronic osteomyelitis)" }
+            },
+            {
+                "number": 48,
+                "type": "mcq",
+                "question": {
+                    "en": "What is the characteristic of benign bone tumor? (One correct answer)",
+                    "km": "តើអ្វីជាលក្ខណៈរបស់ដុំសាច់ឆ្អឹងស្រាល (benign bone tumor)? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Very painful", "B. No metastasis", "C. Rapid growth", "D. Present lymph node"],
+                    "km": ["A. ឈឺចាប់ខ្លាំង", "B. មិនមានការរីករាលដាល (No metastasis)", "C. លូតលាស់លឿន", "D. មានកូនកណ្តុរ"]
+                },
+                "answer": { "en": "B. No metastasis", "km": "B. មិនមានការរីករាលដាល (No metastasis)" }
+            },
+            {
+                "number": 49,
+                "type": "mcq",
+                "question": {
+                    "en": "Which one is the malignant tumor? (One correct answer)",
+                    "km": "តើមួយណាជាដុំសាច់មហារីក? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Fibrous dysplasia", "B. Osteochondroma", "C. Osteosarcoma", "D. Giant Cell Tumor"],
+                    "km": ["A. Fibrous dysplasia", "B. Osteochondroma", "C. Osteosarcoma", "D. Giant Cell Tumor"]
+                },
+                "answer": { "en": "C. Osteosarcoma", "km": "C. Osteosarcoma" }
+            },
+            {
+                "number": 50,
+                "type": "mcq",
+                "question": {
+                    "en": "What is the best treatment for metastasis bone cancer? (One correct answer)",
+                    "km": "តើអ្វីជាការព្យាបាលដ៏ល្អបំផុតសម្រាប់មហារីកឆ្អឹងដែលរាលដាល (metastasis bone cancer)? (ចម្លើយត្រឹមត្រូវមួយ)"
+                },
+                "options": {
+                    "en": ["A. Chemotherapy", "B. Surgery", "C. Radiotherapy", "D. Palliative treatment"],
+                    "km": ["A. ការព្យាបាលដោយគីមី (Chemotherapy)", "B. ការវះកាត់ (Surgery)", "C. ការព្យាបាលដោយកាំរស្មី (Radiotherapy)", "D. ការព្យាបាលបន្ធូរបន្ថយ (Palliative treatment)"]
+                },
+                "answer": { "en": "D. Palliative treatment", "km": "D. ការព្យាបាលបន្ធូរបន្ថយ (Palliative treatment)" }
+            }
+        ];
+        const quizDataPart2 = [];
+        const quizDataPart3 = [];
+        let quizData;
+
+        let currentPart = 1;
+        let quizState = {};
+
+        // Sound Synthesis
+        const correctSynth = new Tone.Synth().toDestination();
+        const incorrectSynth = new Tone.Synth().toDestination();
+        let audioStarted = false;
+
+        // DOM Elements
+        const part1Btn = document.getElementById('part1-btn');
+        const part2Btn = document.getElementById('part2-btn');
+        const part3Btn = document.getElementById('part3-btn');
+        const quizView = document.getElementById('quiz-view');
+        const editView = document.getElementById('edit-view');
+        const practiceSheetBtn = document.getElementById('practice-sheet-btn');
+        const practiceSheetView = document.getElementById('practice-sheet-view');
+        const showAllBtn = document.getElementById('show-all-btn');
+        const allQuestionsView = document.getElementById('all-questions-view');
+        const editQuizBtn = document.getElementById('edit-quiz-btn');
+        const applyPreviewBtn = document.getElementById('apply-preview-btn');
+        const generateSaveCodeBtn = document.getElementById('generate-save-code-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const addQuestionBtn = document.getElementById('add-question-btn');
+        const editQuestionsContainer = document.getElementById('edit-questions-container');
+        const editQuestionNavArea = document.getElementById('edit-question-navigation');
+        const exportArea = document.getElementById('export-area');
+        const exportOutput = document.getElementById('export-output');
+        const copyFeedbackEl = document.getElementById('copy-feedback');
+
+        const mainScoreTextEl = document.getElementById('main-score-text');
+        const questionNavArea = document.getElementById('question-navigation');
+        const questionArea = document.getElementById('question-area');
+        const questionNumberEl = document.getElementById('question-number');
+        const questionTextEl = document.getElementById('question-text');
+        const answerArea = document.getElementById('answer-area');
+        const feedbackArea = document.getElementById('feedback-area');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const redoBtn = document.getElementById('redo-btn');
+        const redoPartBtn = document.getElementById('redo-part-btn');
+        const resultsArea = document.getElementById('results-area');
+        const resultsScoreEl = document.getElementById('results-score');
+        const summaryEl = document.getElementById('summary');
+        const restartBtn = document.getElementById('restart-btn');
+
+        let isAnswered = false;
+        let countdownInterval = null;
+
+        async function startAudio() {
+            if (!audioStarted) {
+                await Tone.start();
+                audioStarted = true;
+            }
+        }
+        
+        function switchPart(part) {
+            currentPart = part;
+
+            part1Btn.classList.remove('bg-indigo-600', 'text-white');
+            part1Btn.classList.add('bg-white', 'text-gray-900');
+            part2Btn.classList.remove('bg-indigo-600', 'text-white');
+            part2Btn.classList.add('bg-white', 'text-gray-900');
+            part3Btn.classList.remove('bg-indigo-600', 'text-white');
+            part3Btn.classList.add('bg-white', 'text-gray-900');
+            
+            let targetBtn;
+            if (part === 1) {
+                quizData = quizDataPart1;
+                targetBtn = part1Btn;
+            } else if (part === 2){
+                quizData = quizDataPart2;
+                targetBtn = part2Btn;
+            } else {
+                quizData = quizDataPart3;
+                targetBtn = part3Btn;
+            }
+            
+            targetBtn.classList.add('bg-indigo-600', 'text-white');
+            targetBtn.classList.remove('bg-white', 'text-gray-900');
+            
+            document.getElementById('quiz-subtitle').textContent = `Subject: Surgical Semiology 2 ( ${quizData.length} questions)`;
+            loadQuizView();
+        }
+
+        function updateScoreText() {
+            mainScoreTextEl.innerHTML = `Score: ${quizState[currentPart].score} / ${quizData.length}`;
+        }
+
+        function startQuiz() {
+            initializeQuiz();
+        }
+        
+        function initializeQuiz() {
+            quizState = {
+                1: { userAnswers: [], score: 0, currentQuestionIndex: 0 },
+                2: { userAnswers: [], score: 0, currentQuestionIndex: 0 },
+                3: { userAnswers: [], score: 0, currentQuestionIndex: 0 }
+            };
+            currentPart = 1;
+            switchPart(1); 
+        }
+        
+        function loadQuizView() {
+            quizView.classList.remove('hidden');
+            editView.classList.add('hidden');
+            practiceSheetView.classList.add('hidden');
+            allQuestionsView.classList.add('hidden');
+            
+            questionNavArea.classList.remove('hidden');
+            questionArea.classList.remove('hidden');
+            answerArea.classList.remove('hidden');
+            resultsArea.classList.add('hidden');
+
+            renderQuestionButtons();
+            showQuestion();
+            updateScoreText();
+        }
+
+        function renderQuestionButtons() {
+            questionNavArea.innerHTML = '';
+            quizData.forEach((_, index) => {
+                const button = document.createElement('button');
+                button.textContent = index + 1;
+                button.classList.add('question-nav-btn', 'border-2', 'border-gray-300', 'rounded-md');
+                button.addEventListener('click', () => {
+                    quizState[currentPart].currentQuestionIndex = index;
+                    showQuestion();
+                    questionArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                questionNavArea.appendChild(button);
+            });
+        }
+        
+        function updateQuestionButtonStyles() {
+            const buttons = Array.from(questionNavArea.children);
+            buttons.forEach((button, index) => {
+                button.classList.remove('active', 'answered-correct', 'answered-incorrect');
+                if (quizState[currentPart].userAnswers[index]) {
+                    if(quizState[currentPart].userAnswers[index].isCorrect) {
+                        button.classList.add('answered-correct');
+                    } else {
+                        button.classList.add('answered-incorrect');
+                    }
+                }
+            });
+            const currentQuestionIndex = quizState[currentPart].currentQuestionIndex;
+            if(buttons[currentQuestionIndex]) {
+                buttons[currentQuestionIndex].classList.add('active');
+            }
+        }
+
+        function showQuestion() {
+            resetState();
+            if (quizData.length === 0) {
+                questionTextEl.innerHTML = "No questions in this part.";
+                questionNavArea.innerHTML = '';
+                answerArea.innerHTML = '';
+                nextBtn.classList.add('hidden');
+                prevBtn.classList.add('hidden');
+                questionNumberEl.innerHTML = `Question 0/0`;
+                return;
+            }
+            const currentQuestionIndex = quizState[currentPart].currentQuestionIndex;
+            const userAnswers = quizState[currentPart].userAnswers;
+            const currentQuestion = quizData[currentQuestionIndex];
+            isAnswered = userAnswers[currentQuestionIndex] !== undefined;
+
+            if (isAnswered) {
+                redoBtn.classList.remove('hidden');
+            }
+
+            questionNumberEl.innerHTML = `Question ${currentQuestionIndex + 1}/${quizData.length}`;
+            
+            if (currentQuestion.type === 'mcq') {
+                 questionTextEl.innerHTML = `
+                    <div id="question-toggle-container" class="cursor-pointer group">
+                        <p class="question-lang-en group-hover:text-indigo-600">${currentQuestion.question.en}</p>
+                        <p class="question-lang-km hidden text-gray-700 mt-2 text-xl">${currentQuestion.question.km || ''}</p>
+                    </div>
+                `;
+                
+                const toggleContainer = document.getElementById('question-toggle-container');
+                if (toggleContainer) {
+                    toggleContainer.addEventListener('click', () => {
+                        document.querySelector('.question-lang-km').classList.toggle('hidden');
+                        document.querySelectorAll('.option-lang-km').forEach(el => el.classList.toggle('hidden'));
+                    });
+                }
+
+                answerArea.classList.add('grid');
+                answerArea.classList.remove('flex', 'flex-col');
+                currentQuestion.options.en.forEach((optionEn, index) => {
+                    const optionKm = currentQuestion.options.km ? currentQuestion.options.km[index] : '';
+                    const button = document.createElement('button');
+                    button.innerHTML = `
+                        <span class="option-lang-en">${optionEn}</span>
+                        <span class="option-lang-km hidden text-lg text-gray-600">${optionKm}</span>
+                    `;
+                    button.classList.add('option-btn', 'w-full', 'p-4', 'border-2', 'border-gray-300', 'rounded-lg', 'text-left', 'hover:bg-gray-100');
+                    button.addEventListener('click', () => selectAnswer(button, optionEn, currentQuestionIndex, answerArea, feedbackArea));
+
+                    if(isAnswered) {
+                        button.disabled = true;
+                        const userAnswerData = userAnswers[currentQuestionIndex];
+                        const correctAnswerEn = currentQuestion.answer.en;
+                        if (optionEn.trim() === correctAnswerEn.trim()){
+                            button.classList.add('correct');
+                        }
+                        if (optionEn.trim() === userAnswerData.answer.trim() && !userAnswerData.isCorrect){
+                            button.classList.add('incorrect');
+                        }
+                    }
+                    answerArea.appendChild(button);
+                });
+            } else if (currentQuestion.type === 'matching') {
+                // This part remains unchanged as matching questions don't have translations yet.
+                questionTextEl.innerHTML = `<strong>${currentQuestion.title}</strong>`;
+                answerArea.classList.remove('grid');
+                answerArea.classList.add('flex', 'flex-col');
+                // ... (rest of matching logic)
+            }
+            updateQuestionButtonStyles();
+            updateButtonVisibility();
+        }
+        
+        function resetState() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            feedbackArea.textContent = '';
+            answerArea.innerHTML = '';
+            redoBtn.classList.add('hidden');
+        }
+
+        function updateButtonVisibility() {
+            const currentQuestionIndex = quizState[currentPart].currentQuestionIndex;
+            prevBtn.classList.toggle('hidden', currentQuestionIndex === 0);
+            const allAnswered = quizState[currentPart].userAnswers.filter(Boolean).length === quizData.length;
+            nextBtn.classList.toggle('hidden', allAnswered);
+
+            if (currentQuestionIndex === quizData.length - 1 || allAnswered) {
+                 nextBtn.innerHTML = `<span class="font-semibold">Show Results</span>`;
+            } else {
+                 nextBtn.innerHTML = `<span class="font-semibold">Next Question</span>`;
+            }
+        }
+
+        async function selectAnswer(button, selectedOptionEn, questionIndex, container, feedbackEl) {
+            await startAudio();
+            if (quizState[currentPart].userAnswers[questionIndex]) return;
+            
+            const allButtons = container.querySelectorAll('button');
+            allButtons.forEach(btn => { btn.disabled = true; });
+
+            const currentQuestion = quizData[questionIndex];
+            const isCorrect = selectedOptionEn.trim() === currentQuestion.answer.en.trim();
+            
+            if (isCorrect) {
+                quizState[currentPart].score++;
+                correctSynth.triggerAttackRelease("C5", "8n", Tone.now());
+                button.classList.add('correct');
+                if (feedbackEl) {
+                    feedbackEl.innerHTML = `Correct!`;
+                    feedbackEl.className = 'mt-2 text-center text-md font-medium text-green-600 practice-feedback';
+                }
+                
+                if (practiceSheetView.classList.contains('hidden') && allQuestionsView.classList.contains('hidden')) {
+                    startCountdown();
+                }
+            } else {
+                const now = Tone.now();
+                incorrectSynth.triggerAttackRelease("G3", "16n", now);
+                incorrectSynth.triggerAttackRelease("F#3", "8n", now + 0.1);
+                button.classList.add('incorrect');
+                 if (feedbackEl) {
+                    feedbackEl.innerHTML = `Wrong! The correct answer is: ${currentQuestion.answer.en}`;
+                    feedbackEl.className = 'mt-2 text-center text-md font-medium text-red-600 practice-feedback';
+                }
+                allButtons.forEach(btn => {
+                    const englishOptionSpan = btn.querySelector('.option-lang-en');
+                    if (englishOptionSpan && englishOptionSpan.textContent.trim() === currentQuestion.answer.en.trim()) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+            
+            quizState[currentPart].userAnswers[questionIndex] = { isCorrect, answer: selectedOptionEn };
+
+            if (!practiceSheetView.classList.contains('hidden')) {
+                const practiceRedoBtn = document.getElementById(`ps-redo-btn-${questionIndex}`);
+                if (practiceRedoBtn) practiceRedoBtn.classList.remove('hidden');
+            } else {
+                redoBtn.classList.remove('hidden');
+            }
+
+            updateScoreText();
+            updateQuestionButtonStyles();
+            updateButtonVisibility();
+        }
+
+        function startCountdown() {
+            let seconds = 5;
+            feedbackArea.innerHTML = `<span class="text-green-600 font-bold">Correct!</span> Next question in <span class="font-bold">${seconds}</span> seconds...`;
+
+            countdownInterval = setInterval(() => {
+                seconds--;
+                if (seconds > 0) {
+                    feedbackArea.innerHTML = `<span class="text-green-600 font-bold">Correct!</span> Next question in <span class="font-bold">${seconds}</span> seconds...`;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+
+                    const allAnswered = quizState[currentPart].userAnswers.filter(Boolean).length === quizData.length;
+                    if (quizState[currentPart].currentQuestionIndex < quizData.length - 1 && !allAnswered) {
+                        quizState[currentPart].currentQuestionIndex++;
+                        showQuestion();
+                    } else {
+                        showResults();
+                    }
+                }
+            }, 1000);
+        }
+
+        async function handleMatchSelection(selectElement, stemIndex, questionIndex, container) {
+            await startAudio();
+            const currentQuestion = quizData[questionIndex];
+            const userOptionIndex = selectElement.value !== "-1" ? selectElement.value.charCodeAt(0) - 65 : -1;
+            const correctOptionIndex = currentQuestion.answer[stemIndex];
+
+            if (userOptionIndex === correctOptionIndex) {
+                correctSynth.triggerAttackRelease("C5", "8n", Tone.now());
+                selectElement.classList.add('correct');
+                selectElement.classList.remove('incorrect');
+            } else {
+                const now = Tone.now();
+                incorrectSynth.triggerAttackRelease("G3", "16n", now);
+                incorrectSynth.triggerAttackRelease("F#3", "8n", now + 0.1);
+                selectElement.classList.add('incorrect');
+                selectElement.classList.remove('correct');
+                const correctAnswerSpanId = container.id === 'answer-area' ? `correct-answer-span-${stemIndex}` : `ps-correct-answer-span-${questionIndex}-${stemIndex}`;
+                const correctAnswerSpan = document.getElementById(correctAnswerSpanId);
+                if (correctAnswerSpan) {
+                    correctAnswerSpan.textContent = `Correct: ${String.fromCharCode(65 + correctOptionIndex)}`;
+                }
+            }
+            selectElement.disabled = true;
+            
+            const allSelects = Array.from(container.querySelectorAll('select'));
+            const allAnswered = allSelects.every(s => s.disabled);
+
+            if (allAnswered) {
+                if (quizState[currentPart].userAnswers[questionIndex]) return;
+                const userSelections = {};
+                let correctMatches = 0;
+                allSelects.forEach((s, i) => {
+                    const selectedVal = s.value !== "-1" ? s.value.charCodeAt(0) - 65 : -1;
+                    userSelections[i] = selectedVal;
+                    if (selectedVal === currentQuestion.answer[i]) correctMatches++;
+                });
+                
+                const isFullyCorrect = correctMatches === currentQuestion.stems.en.length;
+                if (isFullyCorrect) quizState[currentPart].score++;
+                
+                quizState[currentPart].userAnswers[questionIndex] = { isCorrect: isFullyCorrect, answer: userSelections };
+                
+                if (!practiceSheetView.classList.contains('hidden')) {
+                    const practiceRedoBtn = document.getElementById(`ps-redo-btn-${questionIndex}`);
+                    if (practiceRedoBtn) practiceRedoBtn.classList.remove('hidden');
+                } else {
+                    redoBtn.classList.remove('hidden');
+                }
+                
+                updateScoreText();
+                updateQuestionButtonStyles();
+                updateButtonVisibility();
+            }
+        }
+
+        function togglePracticeSheetView() {
+            quizView.classList.toggle('hidden');
+            practiceSheetView.classList.toggle('hidden');
+            allQuestionsView.classList.add('hidden');
+
+            if (!practiceSheetView.classList.contains('hidden')) {
+                renderPracticeSheet();
+                practiceSheetBtn.textContent = 'Back to Quiz';
+            } else {
+                practiceSheetBtn.textContent = 'Practice Sheet';
+                loadQuizView(); // Reload single question view to reflect any changes
+            }
+        }
+
+        function toggleAllQuestionsView() {
+            quizView.classList.toggle('hidden');
+            allQuestionsView.classList.toggle('hidden');
+            practiceSheetView.classList.add('hidden');
+
+            if (!allQuestionsView.classList.contains('hidden')) {
+                renderAllQuestions();
+                showAllBtn.textContent = 'Back to Quiz';
+            } else {
+                showAllBtn.textContent = 'Show Answers';
+            }
+        }
+
+        function renderAllQuestions() {
+            allQuestionsView.innerHTML = ''; // Clear previous content
+
+            const title = document.createElement('h2');
+            title.className = 'text-3xl font-bold text-center mb-6 text-gray-800';
+            title.textContent = `All Questions & Answers - Part ${currentPart}`;
+            allQuestionsView.appendChild(title);
+
+            quizData.forEach(q => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'mb-6 p-4 border rounded-lg bg-gray-50';
+
+                let contentHTML = `<p class="font-bold text-lg mb-2">${q.number}. ${q.type === 'mcq' ? q.question.en : q.title}</p>`;
+
+                if (q.type === 'mcq') {
+                    contentHTML += '<ul class="list-disc list-inside space-y-1">';
+                    q.options.en.forEach(option => {
+                        const isCorrect = option.trim() === q.answer.en.trim();
+                        contentHTML += `<li class="${isCorrect ? 'text-green-700 font-semibold' : 'text-gray-700'}">${option}${isCorrect ? ' &check;' : ''}</li>`;
+                    });
+                    contentHTML += '</ul>';
+                } else if (q.type === 'matching') {
+                    contentHTML += '<ul class="list-none space-y-1 mt-2">';
+                     q.stems.en.forEach((stem, index) => {
+                        const correctOptionIndex = q.answer[index];
+                        const correctOptionText = q.options.en[correctOptionIndex];
+                        contentHTML += `<li class="text-gray-800">${stem} &rarr; <span class="font-semibold text-green-700">${correctOptionText}</span></li>`;
+                    });
+                    contentHTML += '</ul>';
+                }
+                questionDiv.innerHTML = contentHTML;
+                allQuestionsView.appendChild(questionDiv);
+            });
+            
+            const backBtn = document.createElement('button');
+            backBtn.className = 'mt-8 bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-lg block mx-auto';
+            backBtn.innerHTML = '<span class="font-semibold">Back to Quiz</span>';
+            backBtn.addEventListener('click', toggleAllQuestionsView);
+            allQuestionsView.appendChild(backBtn);
+        }
+
+        function renderPracticeSheet() {
+            practiceSheetView.innerHTML = ''; 
+            const title = document.createElement('h2');
+            title.className = 'text-3xl font-bold text-center mb-6 text-gray-800';
+            title.textContent = `Practice Sheet - Part ${currentPart}`;
+            practiceSheetView.appendChild(title);
+
+            quizData.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.id = `ps-question-${index}`;
+                questionDiv.className = 'mb-6 p-4 border rounded-lg bg-gray-50';
+                
+                const questionHeader = document.createElement('div');
+                questionHeader.className = 'flex justify-between items-start';
+                
+                const questionTitle = document.createElement('p');
+                questionTitle.className = 'font-bold text-lg mb-2 flex-grow';
+                questionTitle.innerHTML = `${q.number}. ${q.type === 'mcq' ? q.question.en : q.title}`;
+                
+                const redoBtn = document.createElement('button');
+                redoBtn.id = `ps-redo-btn-${index}`;
+                redoBtn.textContent = 'Redo';
+                redoBtn.className = 'hidden bg-yellow-500 text-white font-bold py-1 px-4 rounded-lg hover:bg-yellow-600 text-sm';
+                redoBtn.addEventListener('click', () => redoPracticeSheetQuestion(index));
+                
+                questionHeader.appendChild(questionTitle);
+                questionHeader.appendChild(redoBtn);
+
+                const answersContainer = document.createElement('div');
+                const feedbackEl = document.createElement('div');
+                feedbackEl.className = 'practice-feedback';
+
+                questionDiv.appendChild(questionHeader);
+
+                if (q.type === 'mcq') {
+                    answersContainer.className = 'grid grid-cols-1 md:grid-cols-2 gap-3 mt-4';
+                    q.options.en.forEach(optionEn => {
+                        const button = document.createElement('button');
+                        button.innerHTML = `<span>${optionEn}</span>`;
+                        button.className = 'option-btn w-full p-3 border-2 border-gray-300 rounded-lg text-left hover:bg-gray-100';
+                        button.addEventListener('click', () => selectAnswer(button, optionEn, index, answersContainer, feedbackEl));
+                        answersContainer.appendChild(button);
+                    });
+                } else if (q.type === 'matching') {
+                    const optionLetters = q.options.en.map((_, i) => String.fromCharCode(65 + i));
+                    let matchingHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4"><div>`;
+                    q.stems.en.forEach((stem, stemIndex) => {
+                        matchingHTML += `<div class="flex items-center mb-4 gap-2">
+                            <p class="flex-grow">${stem}</p>
+                            <select id="ps-match-select-${index}-${stemIndex}" class="border-2 border-gray-300 rounded-md p-2">
+                                <option value="-1">Select</option>
+                                ${optionLetters.map(letter => `<option value="${letter}">${letter}</option>`).join('')}
+                            </select>
+                            <span id="ps-correct-answer-span-${index}-${stemIndex}" class="text-green-600 font-bold w-24 text-left"></span>
+                        </div>`;
+                    });
+                    matchingHTML += `</div><div>`;
+                    q.options.en.forEach((option) => {
+                        matchingHTML += `<p class="mb-2">${option}</p>`;
+                    });
+                    matchingHTML += `</div></div>`;
+                    answersContainer.innerHTML = matchingHTML;
+                }
+
+                questionDiv.appendChild(answersContainer);
+                questionDiv.appendChild(feedbackEl);
+                practiceSheetView.appendChild(questionDiv);
+
+                 if (q.type === 'matching') {
+                    q.stems.en.forEach((_, stemIndex) => {
+                         const selectEl = document.getElementById(`ps-match-select-${index}-${stemIndex}`);
+                         selectEl.addEventListener('change', () => handleMatchSelection(selectEl, stemIndex, index, answersContainer));
+                    });
+                }
+
+                if (quizState[currentPart].userAnswers[index]) {
+                    redoBtn.classList.remove('hidden');
+                    const userAnswerData = quizState[currentPart].userAnswers[index];
+                    if (q.type === 'mcq') {
+                        Array.from(answersContainer.children).forEach(button => {
+                            button.disabled = true;
+                            const optionText = button.textContent.trim();
+                             if (optionText === q.answer.en.trim()) button.classList.add('correct');
+                             if (optionText === userAnswerData.answer.trim() && !userAnswerData.isCorrect) button.classList.add('incorrect');
+                        });
+                    } else if (q.type === 'matching') {
+                        const selects = q.stems.en.map((_, stemIndex) => document.getElementById(`ps-match-select-${index}-${stemIndex}`));
+                        selects.forEach((select, stemIndex) => {
+                            select.disabled = true;
+                            const userOptionIndex = userAnswerData.answer[stemIndex];
+                            if(userOptionIndex !== -1) select.value = String.fromCharCode(65 + userOptionIndex);
+                            const correctOptionIndex = q.answer[stemIndex];
+                            if(userOptionIndex === correctOptionIndex) select.classList.add('correct');
+                            else {
+                                select.classList.add('incorrect');
+                                const span = document.getElementById(`ps-correct-answer-span-${index}-${stemIndex}`);
+                                if (span) span.textContent = `Correct: ${String.fromCharCode(65 + correctOptionIndex)}`;
+                            }
+                        });
+                    }
+                }
+            });
+            
+            const backBtn = document.createElement('button');
+            backBtn.className = 'mt-8 bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-lg block mx-auto';
+            backBtn.innerHTML = '<span class="font-semibold">Back to Quiz</span>';
+            backBtn.addEventListener('click', togglePracticeSheetView);
+            practiceSheetView.appendChild(backBtn);
+        }
+
+        function redoPracticeSheetQuestion(questionIndex) {
+            const answerData = quizState[currentPart].userAnswers[questionIndex];
+            if (!answerData) return;
+
+            if (answerData.isCorrect) {
+                quizState[currentPart].score--;
+            }
+
+            quizState[currentPart].userAnswers[questionIndex] = undefined;
+            updateScoreText();
+            updateQuestionButtonStyles();
+
+            const questionContainer = document.getElementById(`ps-question-${questionIndex}`);
+            if (!questionContainer) return;
+
+            const question = quizData[questionIndex];
+            
+            if (question.type === 'mcq') {
+                const buttons = questionContainer.querySelectorAll('button.option-btn');
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('correct', 'incorrect');
+                });
+            } else if (question.type === 'matching') {
+                const selects = questionContainer.querySelectorAll('select');
+                selects.forEach((select, stemIndex) => {
+                    select.disabled = false;
+                    select.value = '-1';
+                    select.classList.remove('correct', 'incorrect');
+                    const span = document.getElementById(`ps-correct-answer-span-${questionIndex}-${stemIndex}`);
+                    if (span) span.textContent = '';
+                });
+            }
+
+            const feedbackEl = questionContainer.querySelector('.practice-feedback');
+            if (feedbackEl) feedbackEl.innerHTML = '';
+            
+            const redoButton = document.getElementById(`ps-redo-btn-${questionIndex}`);
+            if (redoButton) redoButton.classList.add('hidden');
+        }
+
+
+        function showResults() {
+            questionNavArea.classList.add('hidden');
+            questionArea.classList.add('hidden');
+            answerArea.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            prevBtn.classList.add('hidden');
+            redoBtn.classList.add('hidden');
+            feedbackArea.textContent = '';
+            resultsArea.classList.remove('hidden');
+            resultsScoreEl.innerHTML = `Your final score is ${quizState[currentPart].score} out of ${quizData.length}.`;
+            summaryEl.innerHTML = `<div class="text-center mb-4"><h3 class="text-xl font-bold text-gray-700">Review Your Answers:</h3></div>`; 
+            
+            quizState[currentPart].userAnswers.forEach((ua, index) => {
+                if (!ua) return;
+                const qData = quizData[index];
+                const resultDiv = document.createElement('div');
+                resultDiv.classList.add('mb-4', 'p-3', 'rounded-md', ua.isCorrect ? 'bg-blue-100' : 'bg-red-100');
+                
+                if (qData.type === 'mcq') {
+                    const correctAnswerText = !ua.isCorrect ? `Correct answer: ${qData.answer.en}` : '';
+                    resultDiv.innerHTML = `
+                        <p class="font-semibold">${qData.number}. ${qData.question.en}</p>
+                        <p class="text-sm ${ua.isCorrect ? 'text-blue-700' : 'text-red-700'}">Your answer: ${ua.answer}</p>
+                        <p class="text-sm text-gray-600">${correctAnswerText}</p>`;
+                } else if (qData.type === 'matching') {
+                    let matchesHTML = '';
+                    qData.stems.en.forEach((stem, stemIndex) => {
+                        const userLetter = ua.answer[stemIndex] !== -1 ? String.fromCharCode(65 + ua.answer[stemIndex]) : 'None';
+                        const correctLetter = String.fromCharCode(65 + qData.answer[stemIndex]);
+                        const isMatchCorrect = ua.answer[stemIndex] === qData.answer[stemIndex];
+                        matchesHTML += `<li class="text-sm ${isMatchCorrect ? 'text-blue-700' : 'text-red-700'}">
+                            ${stem} &rarr; Your answer: ${userLetter}. ${!isMatchCorrect ? `Correct: ${correctLetter}` : ''}</li>`;
+                    });
+                    resultDiv.innerHTML = `<p class="font-semibold">${qData.number}. ${qData.title}</p>
+                        <ul class="list-disc list-inside mt-2">${matchesHTML}</ul>`;
+                }
+                summaryEl.appendChild(resultDiv);
+            });
+        }
+        
+        function redoQuestion() {
+            const currentQuestionIndex = quizState[currentPart].currentQuestionIndex;
+            const answerData = quizState[currentPart].userAnswers[currentQuestionIndex];
+            if (!answerData) return;
+
+            if (answerData.isCorrect) {
+                quizState[currentPart].score--;
+            }
+            quizState[currentPart].userAnswers[currentQuestionIndex] = undefined;
+            
+            updateScoreText();
+            showQuestion();
+        }
+
+        function redoPart() {
+            quizState[currentPart] = { userAnswers: [], score: 0, currentQuestionIndex: 0 };
+            loadQuizView();
+        }
+
+        // --- EDIT MODE FUNCTIONS (Simplified for brevity) ---
+        
+        function toggleEditMode() {
+            quizView.classList.toggle('hidden');
+            editView.classList.toggle('hidden');
+            practiceSheetView.classList.add('hidden');
+            allQuestionsView.classList.add('hidden');
+            if (!editView.classList.contains('hidden')) {
+                renderEditView();
+            }
+            exportArea.classList.add('hidden');
+        }
+
+        function renderEditView() {
+            editQuestionsContainer.innerHTML = '';
+            editQuestionNavArea.innerHTML = '';
+            quizData.forEach((q, index) => {
+                const navButton = document.createElement('button');
+                navButton.textContent = index + 1;
+                navButton.className = 'question-nav-btn border-2 border-gray-300 rounded-md';
+                navButton.addEventListener('click', () => document.getElementById(`edit-q-${index}`).scrollIntoView({ behavior: 'smooth' }));
+                editQuestionNavArea.appendChild(navButton);
+                
+                const qDiv = document.createElement('div');
+                qDiv.id = `edit-q-${index}`;
+                qDiv.className = 'border p-4 rounded-lg mb-4 bg-gray-50 scroll-mt-4';
+                const correctAnserIndex = q.type === 'mcq' ? q.options.en.map(o => o.trim()).indexOf(q.answer.en.trim()) : -1;
+
+                qDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="font-bold text-lg">Question ${index + 1}</p>
+                        <button class="delete-question-btn bg-red-500 text-white font-bold py-1 px-3 rounded hover:bg-red-600" data-index="${index}">Delete</button>
+                    </div>
+                    <label class="edit-label">Question (English)</label>
+                    <textarea class="edit-input question-en">${q.type === 'mcq' ? q.question.en : q.title}</textarea>
+                    <div class="options-container mt-4">
+                    ${q.type === 'mcq' ?
+                        q.options.en.map((optEn, optIndex) => `
+                            <div class="flex items-center gap-2 mb-2">
+                                <input type="radio" name="correct-answer-${index}" ${optIndex === correctAnserIndex ? 'checked' : ''}>
+                                <input type="text" class="edit-input option-en" value="${optEn}">
+                            </div>
+                        `).join('') : ''
+                    }
+                    </div>
+                `;
+                editQuestionsContainer.appendChild(qDiv);
+            });
+
+            document.querySelectorAll('.delete-question-btn').forEach(btn => btn.addEventListener('click', (e) => {
+                quizData.splice(parseInt(e.target.dataset.index, 10), 1);
+                renderEditView();
+            }));
+        }
+
+        function getEditedData() {
+            const newQuizData = [];
+            editQuestionsContainer.querySelectorAll('.border').forEach((form, index) => {
+                const q = { number: index + 1, type: 'mcq', question: { en: form.querySelector('.question-en').value } };
+                const optInputs = Array.from(form.querySelectorAll('.option-en'));
+                const radios = Array.from(form.querySelectorAll('input[type="radio"]'));
+                q.options = { en: optInputs.map(input => input.value) };
+                q.answer = { en: q.options.en[radios.findIndex(r => r.checked)] };
+                newQuizData.push(q);
+            });
+            return newQuizData;
+        }
+
+        function applyToPreview() {
+            const editedData = getEditedData();
+            if (currentPart === 1) quizDataPart1 = editedData;
+            else if (currentPart === 2) quizDataPart2 = editedData;
+            else quizDataPart3 = editedData;
+            quizData = editedData;
+            toggleEditMode();
+            initializeQuiz();
+        }
+
+        function generateSaveCode() {
+            const data = getEditedData();
+            const varName = `quizDataPart${currentPart}`;
+            exportOutput.value = `const ${varName} = ${JSON.stringify(data, null, 4)};`;
+            exportArea.classList.remove('hidden');
+        }
+
+        // Event Listeners
+        part1Btn.addEventListener('click', () => switchPart(1));
+        part2Btn.addEventListener('click', () => switchPart(2));
+        part3Btn.addEventListener('click', () => switchPart(3));
+        practiceSheetBtn.addEventListener('click', togglePracticeSheetView);
+        showAllBtn.addEventListener('click', toggleAllQuestionsView);
+        
+        prevBtn.addEventListener('click', () => {
+            if (quizState[currentPart].currentQuestionIndex > 0) {
+                quizState[currentPart].currentQuestionIndex--;
+                showQuestion();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            const allAnswered = quizState[currentPart].userAnswers.filter(Boolean).length === quizData.length;
+            if (quizState[currentPart].currentQuestionIndex < quizData.length - 1 && !allAnswered) {
+                quizState[currentPart].currentQuestionIndex++;
+                showQuestion();
+            } else {
+                showResults();
+            }
+        });
+        
+        restartBtn.addEventListener('click', startQuiz);
+        redoBtn.addEventListener('click', redoQuestion);
+        redoPartBtn.addEventListener('click', redoPart);
+        editQuizBtn.addEventListener('click', toggleEditMode);
+        applyPreviewBtn.addEventListener('click', applyToPreview);
+        generateSaveCodeBtn.addEventListener('click', generateSaveCode);
+        cancelEditBtn.addEventListener('click', toggleEditMode);
+        addQuestionBtn.addEventListener('click', () => {
+            quizData.push({ number: quizData.length + 1, type: 'mcq', question: { en: "New Question" }, options: { en: ["A", "B", "C", "D"] }, answer: { en: "A" } });
+            renderEditView();
+        });
+        exportOutput.addEventListener('click', () => {
+            exportOutput.select();
+            document.execCommand('copy');
+            copyFeedbackEl.textContent = 'Code copied!';
+            setTimeout(() => { copyFeedbackEl.textContent = '' }, 2000);
+        });
+
+        window.addEventListener('beforeunload', e => {
+            e.preventDefault();
+            e.returnValue = '';
+        });
+
+        // Initial start
+        initializeQuiz();
+    </script>
+</body>
+</html>
+
+
+
+
